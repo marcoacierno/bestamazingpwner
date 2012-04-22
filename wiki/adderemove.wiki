@@ -1,5 +1,5 @@
 #summary Comandi /add e /remove
-#labels comandi,adderemove
+#labels comandi,adderemove,Featured
 
 = Spiegazione =
 
