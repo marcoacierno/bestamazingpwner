@@ -78,6 +78,8 @@ public OnGameModeInit() {
 	AddPlayerClass(SPAWN_SKIN,1401.5886,2204.4265,17.6719,140.1902,0,0,0,0,0,0); // normal_spawn
 	
 	ArenaZone = GangZoneCreate(1300.78125,2097.65625,1406.25,2200.1953125);
+	
+	SendRconCommand("mapname Lobby");
 	return 1;
 }
 
@@ -318,6 +320,7 @@ stock FinalScores() {
 	
 	for(new x = 0; x < 10; x++) SendDeathMessage(-1,-1,-1);
 
+    SendRconCommand("mapname Lobby");
 	return 1;
 }
 
@@ -382,6 +385,10 @@ dcmd_start(playerid, params[])
 		SetPlayerWorldBounds(i, 1406.25, 1300.78125, 2200.1953125, 2097.65625);
 		a++;
 		SpawnPlayer(i);
+		
+		new str[69];
+		format(str, sizeof str, "mapname %s vs %s", Nickname[GamersIDs[TEAM_A]], Nickname[GamersIDs[TEAM_B]]);
+		SendRconCommand(str);
 	}
 	GameRunning=1;
 	return 1;
