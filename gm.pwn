@@ -57,13 +57,6 @@ new ArenaZone;
 #define TEAM_A_SKIN     34
 #define TEAM_B_SKIN     58
 
-/* Crash */
-new Crash_Nickname[MAX_PLAYERS][24];
-new Float:Crash_Healths[MAX_PLAYERS][2];
-new Crash_Team[MAX_PLAYERS];
-new Float:Crash_Position[MAX_PLAYERS][3];
-new Crash_Restore[MAX_PLAYERS];
-
 main()
 {
 	print("\n----------------------------------");
@@ -96,7 +89,6 @@ public OnPlayerRequestClass(playerid, classid) {
 }
 
 public OnPlayerConnect(playerid) {
-    Crash_Restore[playerid] = -1;
 	GetPlayerName(playerid, Nickname[playerid], sizeof Nickname);
     Gaming[playerid] = false;
  	new string[128];
@@ -111,18 +103,6 @@ public OnPlayerConnect(playerid) {
 	SendClientMessage(playerid, COLOR_DARKRED, "*****************************************************");
 
 
-	if(GameRunning) {
-	    for(new i=0; i < 20; i++) {
-	        if(!strcmp(Crash_Nickname[i], Nickname[playerid], true)) {
-				SendClientMessage(playerid, red, "Stai per essere riportato in game dopo un crash..");
-				Crash_Restore[playerid]=i;
-				foreach(Player, x) {
-				    if(Gaming[x]==false)continue;
-				    TogglePlayerControllable(x, false);
-				}
-			}
-	    }
-	}
 	return 1;
 }
 
@@ -144,18 +124,6 @@ public OnPlayerDisconnect(playerid, reason) {
 	
 	if(Gaming[playerid] == true) {
 	    pGaming--;
-	    if(GameRunning && reason == 0) {
-	        format(string, sizeof string, "Ops! \"%s\" era in gioco! I Suoi dati sono stati salvati con l'ID %d", Nickname[playerid], playerid);
-	        SendClientMessageToAll(COLOR_LEFT, string);
-
-			strcpy(Crash_Nickname[playerid], Nickname[playerid]);
-			Crash_Team[playerid] = Team[playerid];
-			
-			GetPlayerPos(playerid, Crash_Position[playerid][0], Crash_Position[playerid][1], Crash_Position[playerid][2]);
-			
-			GetPlayerHealth(playerid, Crash_Healths[playerid][0]);
-			GetPlayerArmour(playerid, Crash_Healths[playerid][1]);
-	    }
 	}
     Gaming[playerid] = false;
 	return 1;
@@ -166,36 +134,9 @@ public OnPlayerSpawn(playerid) {
 	SetPlayerArmour(playerid, 100);
 	GangZoneShowForPlayer(playerid, ArenaZone, 0x69BC61AA);
 	
-	if(Crash_Restore[playerid] != -1 && GameRunning) {
-	    SetPlayerPos(playerid, Crash_Position[Crash_Restore[playerid]][0], Crash_Position[Crash_Restore[playerid]][1], Crash_Position[Crash_Restore[playerid]][2]);
-	    SetPlayerPos(playerid, Crash_Position[Crash_Restore[playerid]][0], Crash_Position[Crash_Restore[playerid]][1], Crash_Position[Crash_Restore[playerid]][2]);
-
-		SetPlayerHealth(playerid, Crash_Healths[Crash_Restore[playerid]][0]);
-        SetPlayerArmour(playerid, Crash_Healths[Crash_Restore[playerid]][1]);
-        
-        Team[playerid] = Crash_Team[Crash_Restore[playerid]];
-        
-        SetPlayerTeam(playerid, Team[playerid]);
-
-		if(Team[playerid]==1) {
- 			SetPlayerColor(playerid, 0x4C8EB1AA);
-		}
-		else {
-			SetPlayerColor(playerid, 0x67D320AA);
-		}
-			
-        SetPlayerWorldBounds(playerid, 1406.25, 1300.78125, 2200.1953125, 2097.65625);
-        
-        Crash_Restore[playerid] = -1;
-        SendClientMessage(playerid, -1, "Sei pronto per tornare a combattere!");
-
-		foreach(Player, x) {
-		    if(Gaming[x]==false)continue;
-		    TogglePlayerControllable(x, false);
-		    GameTextForPlayer(x, "~g~GO ~h~GO ~h~GO ~h~GO ~h~GO", 1000, 5);
-		    PlayerPlaySound(x, 1057, 0.0, 0.0, 0.0);
-		    PlayerPlaySound(x, 1057, 0.0, 0.0, 0.0);
-		}
+	if(Gaming[playerid]) {
+		new t_o = TeamOpposto(Team[playerid]);
+		SpawnPlayer(GamersIDs[t_o]);
 	}
 	return 1;
 }
@@ -219,8 +160,8 @@ public OnPlayerDeath(playerid, killerid, reason) {
 			    SendClientMessageToAll(0x20BF3DAA, "Tutti i rounds sono stati giocati.");
 			    FinalScores();
 			}
-			SpawnPlayer(killerid);
-		    SetTimerEx("SpawnPlayerFix",5000,0,"i",playerid);
+			//SpawnPlayer(killerid);
+		    //SetTimerEx("SpawnPlayerFix",5000,0,"i",playerid);
 			return 1;
 	    }
 	}
@@ -274,6 +215,15 @@ public OnPlayerClickPlayer(playerid, clickedplayerid, source) {
 }
 
 /* functions */
+stock TeamOpposto(t)
+{
+	if(t == TEAM_A)
+	{
+	    return TEAM_B;
+	}
+	return TEAM_A;
+}
+
 
 stock FinalScores() {
 	new str[256];
