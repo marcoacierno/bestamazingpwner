@@ -1,0 +1,17 @@
+#summary Comandi della gamemode
+#labels Featured,samp,comandi
+
+= Introduction =
+
+Comandi della gamemode:
+*Admin*
+/add - Aggiunge il giocatore come duellante
+/remove - Rimuove il giocatore come duellante
+/start - Avvia i duelli
+/pause - Pausa i duelli
+/unpause - Unpausa i duelli
+/setrounds - Setta i rounds da giocare
+
+*Per tutti*
+/spec - Osserva un giocatore in game
+/sspec - Ferma l'osservazioned in player in game
