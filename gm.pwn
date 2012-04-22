@@ -60,7 +60,7 @@ new ArenaZone;
 main()
 {
 	print("\n----------------------------------");
-	print(" Best Amazing Pwner v. 1.0.2");
+	print(" Best Amazing Pwner v. 1.0.4");
 	print("----------------------------------\n");
 }
 
@@ -138,6 +138,13 @@ public OnPlayerSpawn(playerid) {
 		new t_o = TeamOpposto(Team[playerid]);
 		SpawnPlayer(GamersIDs[t_o]);
 	}
+	
+	foreach(Player, i)	{
+		if(GetPVarInt(i, "spec") == playerid) {
+		    PlayerSpectatePlayer(i, playerid);
+		}
+	}
+		
 	return 1;
 }
 
@@ -160,9 +167,10 @@ public OnPlayerDeath(playerid, killerid, reason) {
 			    SendClientMessageToAll(0x20BF3DAA, "Tutti i rounds sono stati giocati.");
 			    FinalScores();
 			}
-			//SpawnPlayer(killerid);
-		    //SetTimerEx("SpawnPlayerFix",5000,0,"i",playerid);
+			format(string, sizeof string, "mapname %s vs %s (%d - %d)", Nickname[GamersIDs[TEAM_A]], Nickname[GamersIDs[TEAM_B]], Scores[TEAM_A], Scores[TEAM_B]);
+			SendRconCommand(string);
 			return 1;
+
 	    }
 	}
 	return 1;
@@ -252,8 +260,8 @@ stock FinalScores() {
 	Team[GamersIDs[TEAM_A]] = 0;
 	Team[GamersIDs[TEAM_B]] = 0;
 
-	SetSpawnInfo(GamersIDs[0], 0, SPAWN_SKIN,1401.5886,2204.4265,17.6719,140.1902,0,0,0,0,0,0);
-	SetSpawnInfo(GamersIDs[1], 0, SPAWN_SKIN,1401.5886,2204.4265,17.6719,140.1902,0,0,0,0,0,0);
+	SetSpawnInfo(GamersIDs[0], 0, SPAWN_SKIN, 1401.5886,2204.4265,17.6719,140.1902,0,0,0,0,0,0);
+	SetSpawnInfo(GamersIDs[1], 0, SPAWN_SKIN, 1401.5886,2204.4265,17.6719,140.1902,0,0,0,0,0,0);
 	
 	GamersIDs[TEAM_A] = 0;
 	GamersIDs[TEAM_B] = 0;
@@ -337,7 +345,7 @@ dcmd_start(playerid, params[])
 		SpawnPlayer(i);
 		
 		new str[69];
-		format(str, sizeof str, "mapname %s vs %s", Nickname[GamersIDs[TEAM_A]], Nickname[GamersIDs[TEAM_B]]);
+		format(str, sizeof str, "mapname %s vs %s (%d - %d)", Nickname[GamersIDs[TEAM_A]], Nickname[GamersIDs[TEAM_B]], Scores[TEAM_A], Scores[TEAM_B]);
 		SendRconCommand(str);
 	}
 	GameRunning=1;
@@ -406,7 +414,7 @@ dcmd_spec(playerid, params[])
 	PlayerSpectatePlayer(playerid, id);
 	SetPlayerVirtualWorld(playerid, 2);
 	SendClientMessage(playerid, green, "Spec iniziato.");
-    SetPVarInt(playerid, "spec", 1);
+    SetPVarInt(playerid, "spec", id);
 	return 1;
 }
 
