@@ -3,15 +3,15 @@
 
 = Introduction =
 
-Comandi della gamemode:
-*Admin*
-/add - Aggiunge il giocatore come duellante
-/remove - Rimuove il giocatore come duellante
-/start - Avvia i duelli
-/pause - Pausa i duelli
-/unpause - Unpausa i duelli
-/setrounds - Setta i rounds da giocare
-
-*Per tutti*
-/spec - Osserva un giocatore in game
-/sspec - Ferma l'osservazioned in player in game
+Comandi della gamemode: <br />
+*Admin* <br />
+/add - Aggiunge il giocatore come duellante <br />
+/remove - Rimuove il giocatore come duellante <br />
+/start - Avvia i duelli <br />
+/pause - Pausa i duelli <br />
+/unpause - Unpausa i duelli <br />
+/setrounds - Setta i rounds da giocare <br />
+<br />
+*Per tutti* <br />
+/spec - Osserva un giocatore in game <br />
+/sspec - Ferma l'osservazioned in player in game <br />
