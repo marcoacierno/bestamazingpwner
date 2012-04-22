@@ -67,7 +67,7 @@ new Crash_Restore[MAX_PLAYERS];
 main()
 {
 	print("\n----------------------------------");
-	print(" Best Amazing Pwner v. 1.0");
+	print(" Best Amazing Pwner v. 1.0.2");
 	print("----------------------------------\n");
 }
 
