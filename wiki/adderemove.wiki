@@ -7,4 +7,4 @@ I comandi */add* e */remove* servono, in caso di round non startato a segnare du
 In caso di round già startato, i comandi funzionano come due comandi add e remove di una gamemode AAD (Attacco e Difesa).
 
 
-*Ricordati*: In caso ci sono già i due giocatori in duel, non puoi aggiungerne un terzo usando /add ma dovrai per forza toglierne uno prima usando /remove e poi /add.
+*Ricordati*: Nel caso in cui ci siano già due giocatori nel duel, devi *per forza* rimuoverne uno usando il comando /remove e successivamente aggiungerne (o riaggiungere lo stesso) un altro usando /add!
