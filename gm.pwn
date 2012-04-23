@@ -55,9 +55,9 @@ new Scores[3];
 
 new ArenaZone;
 
-#define SPAWN_SKIN      289
-#define TEAM_A_SKIN     34
-#define TEAM_B_SKIN     58
+#define SPAWN_SKIN      		289
+#define TEAM_A_SKIN     		34
+#define TEAM_B_SKIN     		58
 
 #define LOBBY_COLOR    	 	  0x44C948AA
 #define COLOR_TEAM_A          0x4C8EB1AA
@@ -175,7 +175,7 @@ public OnPlayerDeath(playerid, killerid, reason) {
 			SendClientMessageToAll(-1, string);
 			if(DuelsPlayed>=DuelsToPlay)
 			{
-			    SendClientMessageToAll(0x20BF3DAA, "Tutti i rounds sono stati giocati.");
+			    SendClientMessageToAll(0x20BF3DAA, "Tutti i duels sono stati giocati.");
 			    FinalScores();
 			}
 			format(string, sizeof string, "mapname %s vs %s (%d - %d)", Nickname[GamersIDs[TEAM_A]], Nickname[GamersIDs[TEAM_B]], Scores[TEAM_A], Scores[TEAM_B]);
@@ -403,7 +403,7 @@ dcmd_start(playerid, params[])
 {
 	#pragma unused params
 	if(!IsPlayerAdmin(playerid)) return SendClientMessage(playerid, red, ADMIN_REQ);
-	if(GameRunning) return SendClientMessage(playerid, COLOR_RED, "Il game è già startato..");
+	if(GameRunning) return SendClientMessage(playerid, COLOR_RED, "I Duels sono già stati startati..");
 	if(pGaming < 2 || pGaming > 2) return SendClientMessage(playerid, red, "Il numero di giocatori settati non è valido.");
  	new string[128];
 	format(string, sizeof string, "L'Admin \"%s\" ha startato i duels..", Nickname[playerid]);
@@ -442,8 +442,8 @@ dcmd_pause(playerid, params[])
 {
     #pragma unused params
     if(!IsPlayerAdmin(playerid)) return SendClientMessage(playerid, red, ADMIN_REQ);
-	if(!GameRunning) return SendClientMessage(playerid, COLOR_RED, "Il game non è startato..");
-	if(Paused) return SendClientMessage(playerid, COLOR_RED, "Il game è già pausato..");
+	if(!GameRunning) return SendClientMessage(playerid, COLOR_RED, "I Duels non sono stati startati..");
+	if(Paused) return SendClientMessage(playerid, COLOR_RED, "I Duels sono già in pausa..");
 	foreach(Player, i)
 	{
 	    if(Gaming[i] == false) continue;
@@ -451,7 +451,7 @@ dcmd_pause(playerid, params[])
 	}
 	Paused = 1;
  	new string[128];
-	format(string, sizeof string, "L'Admin \"%s\" ha pausato il round..", Nickname[playerid]);
+	format(string, sizeof string, "L'Admin \"%s\" ha pausato i duels..", Nickname[playerid]);
 	SendClientMessageToAll(green, string);
 	return 1;
 }
@@ -460,8 +460,8 @@ dcmd_unpause(playerid, params[])
 {
     #pragma unused params
 	if(!IsPlayerAdmin(playerid)) return SendClientMessage(playerid, red, ADMIN_REQ);
-	if(!GameRunning) return SendClientMessage(playerid, COLOR_RED, "Il game non è startato..");
-	if(!Paused) return SendClientMessage(playerid, COLOR_RED, "Il game non è pausato..");
+	if(!GameRunning) return SendClientMessage(playerid, COLOR_RED, "I Duels non sono stati startati..");
+	if(!Paused) return SendClientMessage(playerid, COLOR_RED, "I Duels non pausati..");
 	foreach(Player, i)
 	{
 	    if(Gaming[i] == false) continue;
@@ -469,7 +469,7 @@ dcmd_unpause(playerid, params[])
 	}
 	Paused = 0;
  	new string[128];
-	format(string, sizeof string, "L'Admin \"%s\" ha spausato il round..", Nickname[playerid]);
+	format(string, sizeof string, "L'Admin \"%s\" ha spausato i duels..", Nickname[playerid]);
 	SendClientMessageToAll(green, string);
 	return 1;
 }
