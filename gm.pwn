@@ -206,6 +206,7 @@ public OnPlayerCommandText(playerid, cmdtext[]) {
 	dcmd(setrounds, 9, cmdtext);
 	dcmd(spec, 4, cmdtext);
 	dcmd(sspec, 5, cmdtext);
+	dcmd(kill, 4, cmdtext);
 	return 0;
 }
 
@@ -511,6 +512,14 @@ dcmd_sspec(playerid, params[])
 	SetPlayerVirtualWorld(playerid, 0);
 	SendClientMessage(playerid, green, "Spec finito.");
 	SetPVarInt(playerid, "spec", -1);
+	return 1;
+}
+
+dcmd_kill(playerid, params[])
+{
+	#pragma unused params
+	if(!Gaming[playerid]&&GameRunning) return SendClientMessage(playerid, red, "Non puoi usare questo comando ora.");
+	SetPlayerHealth(playerid, 0.0);
 	return 1;
 }
 
