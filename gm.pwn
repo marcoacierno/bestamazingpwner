@@ -104,12 +104,12 @@ public OnPlayerConnect(playerid) {
 	SendClientMessage(playerid, COLOR_DARKRED, "*****************************************************");
 	SendClientMessage(playerid, green, "Gamemode version: "#VERSION);
 	SendClientMessage(playerid, green, "/add - /remove Aggiunge/rimuove un giocatore");
-	SendClientMessage(playerid, green, "* Importante: I Comandi /add e /remove, in caso di duels già startati, si comportano come gli add/remove delle GM AAD");
 	SendClientMessage(playerid, green, "/start - /pause e /unpause Starta, pausa e spausa");
 	SendClientMessage(playerid, green, "/setrounds Setta i rounds da giocare");
 	SendClientMessage(playerid, green, "/spec - /sspec Inizia/Ferma lo spec di un giocatore");
+	SendClientMessage(playerid, pink, "http://code.google.com/p/bestamazingpwner/source/browse/gm.pwn Modifica, Migliora, Rilascia. #opensource");
+	SendClientMessage(playerid, pink, "http://tinyurl.com/c9wrb8n Short link.");
 	SendClientMessage(playerid, COLOR_DARKRED, "*****************************************************");
-
 
     SetPlayerColor(playerid, LOBBY_COLOR);
 	return 1;
@@ -150,6 +150,7 @@ public OnPlayerSpawn(playerid) {
 	}
 	
 	foreach(Player, i)	{
+	    if(GetPVarInt(i, "spec") == -1) continue;
 		if(GetPVarInt(i, "spec") == playerid) {
 		    PlayerSpectatePlayer(i, playerid);
 		}
@@ -300,16 +301,16 @@ dcmd_add(playerid, params[])
 	new id = strval(params);
 	if(!IsPlayerConnected(id)) return SendClientMessage(playerid, COLOR_RED, "Player non connesso.");
 	new string[128];
-	if(!GameRunning)
-	{
-		if(Gaming[id] == true) return SendClientMessage(playerid, COLOR_RED, "Il player già giocherà, usa /remove [id] per toglierlo.");
-		if(pGaming>2) return SendClientMessage(playerid, COLOR_RED, "Ci sono più di due giocatori pronti per giocare..");
-	    Gaming[id] = true;
-	    pGaming++;
-		format(string, sizeof string, "L'Admin \"%s\" ha aggiunto \"%s\" come giocatore.", Nickname[playerid], Nickname[id]);
-		SendClientMessageToAll(WINNER_GREEN, string);
-	}
-	else
+//	if(!GameRunning)
+//	{
+	if(Gaming[id] == true) return SendClientMessage(playerid, COLOR_RED, "Il player già giocherà, usa /remove [id] per toglierlo.");
+	if(pGaming>2) return SendClientMessage(playerid, COLOR_RED, "Ci sono più di due giocatori pronti per giocare..");
+    Gaming[id] = true;
+    pGaming++;
+	format(string, sizeof string, "L'Admin \"%s\" ha aggiunto \"%s\" come giocatore.", Nickname[playerid], Nickname[id]);
+	SendClientMessageToAll(WINNER_GREEN, string);
+//	}
+/*	else
 	{
 	    if(pGaming==2) return SendClientMessage(playerid, red, "Ci sono già due giocatori nel duel.");
 		if(GamersIDs[TEAM_A] == INVALID_PLAYER_ID) {
@@ -347,7 +348,7 @@ dcmd_add(playerid, params[])
 		    SendClientMessage(playerid, red, "Impossibile trovare un team senza un giocatore!");
 		    return 1;
 		}
-	}
+	}*/
 	return 1;
 }
 dcmd_remove(playerid, params[])
@@ -358,13 +359,13 @@ dcmd_remove(playerid, params[])
 	if(!IsPlayerConnected(id)) return SendClientMessage(playerid, COLOR_RED, "Player non connesso.");
 	if(Gaming[playerid] == false) return SendClientMessage(playerid, COLOR_RED, "Il player non è in game, usa /add [id] per aggiungerlo.");
 	new string[128];
-	if(GameRunning)
-	{
-	    Gaming[playerid] = false;
-	    pGaming--;
-		format(string, sizeof string, "L'Admin \"%s\" ha rimosso \"%s\" come giocatore.", Nickname[playerid], Nickname[id]);
-		SendClientMessageToAll(WINNER_GREEN, string);
-	}
+//	if(GameRunning)
+//	{
+    Gaming[playerid] = false;
+    pGaming--;
+	format(string, sizeof string, "L'Admin \"%s\" ha rimosso \"%s\" come giocatore.", Nickname[playerid], Nickname[id]);
+	SendClientMessageToAll(WINNER_GREEN, string);
+/*	}
 	else
 	{
 		new team = Team[id];
@@ -393,7 +394,7 @@ dcmd_remove(playerid, params[])
 		    
 		    SendClientMessageToAll(COLOR_PURPLE, "Duels finiti! Tutti i giocatori sono stati rimossi!.");
 		}
-	}
+	}*/
 	return 1;
 }
 
@@ -407,7 +408,7 @@ dcmd_start(playerid, params[])
 	format(string, sizeof string, "L'Admin \"%s\" ha startato i duels..", Nickname[playerid]);
 	SendClientMessageToAll(WINNER_GREEN, string);
 
-	new a;
+	new a=0;
 	foreach(Player, i)
 	{
 	    if(Gaming[i]==false) continue;
@@ -416,6 +417,7 @@ dcmd_start(playerid, params[])
 			Team[i] = TEAM_A;
 			GamersIDs[TEAM_A] = i;
 			SetPlayerColor(i, COLOR_TEAM_A);
+			a=1;
 		}
 		else if(a==1) {
 			SetSpawnInfo(i, i, TEAM_B_SKIN, 1389.4598,2107.9426,11.0156,37.8928, 24, 99999, 25, 99999, 0, 0);
@@ -425,7 +427,6 @@ dcmd_start(playerid, params[])
 		}
 		SetPlayerVirtualWorld(i, 2);
 		SetPlayerWorldBounds(i, 1406.25, 1300.78125, 2200.1953125, 2097.65625);
-		a++;
 		SpawnPlayer(i);
 		
 		new str[69];
