@@ -144,7 +144,7 @@ public OnPlayerSpawn(playerid) {
 	SetPlayerArmour(playerid, 100);
 	GangZoneShowForPlayer(playerid, ArenaZone, 0x69BC61AA);
 	
-	if(Gaming[playerid] && DuelsPlayed != 0) {
+	if( Gaming[playerid] && DuelsPlayed != 0 && GameRunning) {
 		new t_o = TeamOpposto(Team[playerid]);
 		SpawnPlayer(GamersIDs[t_o]);
 	}
@@ -267,14 +267,14 @@ stock FinalScores() {
 	Team[GamersIDs[TEAM_A]] = INVALID_PLAYER_ID;
 	Team[GamersIDs[TEAM_B]] = INVALID_PLAYER_ID;
 
-	SetSpawnInfo(GamersIDs[1], 0, SPAWN_SKIN, 1401.5886,2204.4265,17.6719,140.1902,0,0,0,0,0,0);
-	SetSpawnInfo(GamersIDs[2], 0, SPAWN_SKIN, 1401.5886,2204.4265,17.6719,140.1902,0,0,0,0,0,0);
-	
+	SetSpawnInfo(GamersIDs[TEAM_A], 0, SPAWN_SKIN, 1401.5886,2204.4265,17.6719,140.1902,0,0,0,0,0,0);
+	SetSpawnInfo(GamersIDs[TEAM_B], 0, SPAWN_SKIN, 1401.5886,2204.4265,17.6719,140.1902,0,0,0,0,0,0);
 	
 	GamersIDs[TEAM_A] = INVALID_PLAYER_ID;
 	GamersIDs[TEAM_B] = INVALID_PLAYER_ID;
 	
 	DuelsPlayed = 0;
+	GameRunning = 0;
 	
 	foreach(Player, i)
 	{
