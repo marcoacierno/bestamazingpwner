@@ -177,6 +177,7 @@ public OnPlayerDeath(playerid, killerid, reason) {
 			{
 			    SendClientMessageToAll(0x20BF3DAA, "Tutti i duels sono stati giocati.");
 			    FinalScores();
+			    return 1;
 			}
 			format(string, sizeof string, "mapname %s vs %s (%d - %d)", Nickname[GamersIDs[TEAM_A]], Nickname[GamersIDs[TEAM_B]], Scores[TEAM_A], Scores[TEAM_B]);
 			SendRconCommand(string);
@@ -184,12 +185,6 @@ public OnPlayerDeath(playerid, killerid, reason) {
 
 	    }
 	}
-	return 1;
-}
-
-forward SpawnPlayerFix(playerid);
-public SpawnPlayerFix(playerid) {
-	SpawnPlayer(playerid);
 	return 1;
 }
 
