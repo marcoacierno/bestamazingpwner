@@ -3,6 +3,8 @@
 
 = Spiegazione =
 
+Versione: <br />
+Solo su __1.1.0__<br/>
 I comandi */add* e */remove* servono, in caso di round non startato a segnare due giocatori come sfidati.
 In caso di round già startato, i comandi funzionano come due comandi add e remove di una gamemode AAD (Attacco e Difesa).
 
