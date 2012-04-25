@@ -144,7 +144,7 @@ public OnPlayerSpawn(playerid) {
 	SetPlayerArmour(playerid, 100);
 	GangZoneShowForPlayer(playerid, ArenaZone, 0x69BC61AA);
 	
-	if(Gaming[playerid]) {
+	if(Gaming[playerid] && DuelsPlayed != 0) {
 		new t_o = TeamOpposto(Team[playerid]);
 		SpawnPlayer(GamersIDs[t_o]);
 	}
@@ -275,6 +275,7 @@ stock FinalScores() {
 	SetSpawnInfo(GamersIDs[1], 0, SPAWN_SKIN, 1401.5886,2204.4265,17.6719,140.1902,0,0,0,0,0,0);
 	SetSpawnInfo(GamersIDs[2], 0, SPAWN_SKIN, 1401.5886,2204.4265,17.6719,140.1902,0,0,0,0,0,0);
 	
+	
 	GamersIDs[TEAM_A] = INVALID_PLAYER_ID;
 	GamersIDs[TEAM_B] = INVALID_PLAYER_ID;
 	
@@ -301,55 +302,29 @@ dcmd_add(playerid, params[])
     if(!strlen(params)) return SendClientMessage(playerid, red, "Usa /add [id]");
 	new id = strval(params);
 	if(!IsPlayerConnected(id)) return SendClientMessage(playerid, COLOR_RED, "Player non connesso.");
-	new string[128];
-//	if(!GameRunning)
-//	{
 	if(Gaming[id] == true) return SendClientMessage(playerid, COLOR_RED, "Il player già giocherà, usa /remove [id] per toglierlo.");
 	if(pGaming>2) return SendClientMessage(playerid, COLOR_RED, "Ci sono più di due giocatori pronti per giocare..");
+    new string[128];
+
+	if(GamersIDs[TEAM_A] == INVALID_PLAYER_ID) {
+	    Team[id] = TEAM_A;
+	    GamersIDs[TEAM_A] = id;
+	}
+	else if(GamersIDs[TEAM_B] == INVALID_PLAYER_ID) {
+	    Team[id] = TEAM_B;
+	    GamersIDs[TEAM_B] = id;
+	}
+	else {
+	    SendClientMessage(playerid, red, "Impossibile trovare un team vuoto (che ci fai qui?)");
+	    return 1;
+	}
+
     Gaming[id] = true;
     pGaming++;
+    
 	format(string, sizeof string, "L'Admin \"%s\" ha aggiunto \"%s\" come giocatore.", Nickname[playerid], Nickname[id]);
 	SendClientMessageToAll(WINNER_GREEN, string);
-//	}
-/*	else
-	{
-	    if(pGaming==2) return SendClientMessage(playerid, red, "Ci sono già due giocatori nel duel.");
-		if(GamersIDs[TEAM_A] == INVALID_PLAYER_ID) {
-		    // add to team A
-			SetSpawnInfo(id, id, TEAM_A_SKIN, 1307.3180,2190.0989,11.0234,217.9566, 24, 99999, 25, 99999, 0, 0);
-			Team[id] = TEAM_A;
-			GamersIDs[TEAM_A] = id;
-			SetPlayerColor(id, COLOR_TEAM_A);
-			SetPlayerVirtualWorld(id, 2);
-			SetPlayerWorldBounds(id, 1406.25, 1300.78125, 2200.1953125, 2097.65625);
-			SpawnPlayer(id);
-			pGaming++;
-			Gaming[id]=true;
-			format(string, sizeof string, "mapname %s vs %s (%d - %d)", Nickname[GamersIDs[TEAM_A]], Nickname[GamersIDs[TEAM_B]], Scores[TEAM_A], Scores[TEAM_B]);
-			SendRconCommand(string);
-			format(string, sizeof string, "L'Admin \"%s\" ha aggiunto \"%s\" nel round.", Nickname[playerid], Nickname[id]);
-			SendClientMessageToAll(WINNER_GREEN, string);
-		}
-		else if(GamersIDs[TEAM_B] == INVALID_PLAYER_ID) {
-			SetSpawnInfo(id, id, TEAM_B_SKIN, 1389.4598,2107.9426,11.0156,37.8928, 24, 99999, 25, 99999, 0, 0);
-			Team[id] = TEAM_B;
-			GamersIDs[TEAM_B] = id;
-			SetPlayerColor(id, COLOR_TEAM_B);
-			SetPlayerVirtualWorld(id, 2);
-			SetPlayerWorldBounds(id, 1406.25, 1300.78125, 2200.1953125, 2097.65625);
-			SpawnPlayer(id);
-			pGaming++;
-			Gaming[id]=true;
-			format(string, sizeof string, "mapname %s vs %s (%d - %d)", Nickname[GamersIDs[TEAM_A]], Nickname[GamersIDs[TEAM_B]], Scores[TEAM_A], Scores[TEAM_B]);
-			SendRconCommand(string);
-			format(string, sizeof string, "L'Admin \"%s\" ha aggiunto \"%s\" nel round.", Nickname[playerid], Nickname[id]);
-			SendClientMessageToAll(WINNER_GREEN, string);
-		}
-		else {
-		    SendClientMessage(playerid, red, "Impossibile trovare un team senza un giocatore!");
-		    return 1;
-		}
-	}*/
+
 	return 1;
 }
 dcmd_remove(playerid, params[])
@@ -360,42 +335,16 @@ dcmd_remove(playerid, params[])
 	if(!IsPlayerConnected(id)) return SendClientMessage(playerid, COLOR_RED, "Player non connesso.");
 	if(Gaming[playerid] == false) return SendClientMessage(playerid, COLOR_RED, "Il player non è in game, usa /add [id] per aggiungerlo.");
 	new string[128];
-//	if(GameRunning)
-//	{
-    Gaming[playerid] = false;
+
+    GamersIDs[Team[id]] = INVALID_PLAYER_ID;
+    Team[id] = 0;
+
+    Gaming[id] = false;
     pGaming--;
+    
 	format(string, sizeof string, "L'Admin \"%s\" ha rimosso \"%s\" come giocatore.", Nickname[playerid], Nickname[id]);
 	SendClientMessageToAll(WINNER_GREEN, string);
-/*	}
-	else
-	{
-		new team = Team[id];
-		GamersIDs[team] = INVALID_PLAYER_ID;
-		Team[id] = 0;
-		SetPlayerVirtualWorld(id, 0);
-		SetPlayerWorldBounds(id, 20000.0000, -20000.0000, 20000.0000, -20000.0000);
-		SetPlayerColor(id, LOBBY_COLOR);
-		SpawnPlayer(id);
-		pGaming--;
-		format(string, sizeof string, "L'Admin \"%s\" ha rimosso \"%s\" dal round.", Nickname[playerid], Nickname[id]);
-		SendClientMessageToAll(WINNER_GREEN, string);
-		if(pGaming==0)
-		{
-			Scores[TEAM_A] = 0;
-			Scores[TEAM_B] = 0;
-			
-			GamersIDs[TEAM_A] = INVALID_PLAYER_ID;
-			GamersIDs[TEAM_B] = INVALID_PLAYER_ID;
 
-			DuelsPlayed = 0;
-
-			for(new x = 0; x < 10; x++) SendDeathMessage(-1,-1,-1);
-
-		    SendRconCommand("mapname Lobby");
-		    
-		    SendClientMessageToAll(COLOR_PURPLE, "Duels finiti! Tutti i giocatori sono stati rimossi!.");
-		}
-	}*/
 	return 1;
 }
 
@@ -409,31 +358,25 @@ dcmd_start(playerid, params[])
 	format(string, sizeof string, "L'Admin \"%s\" ha startato i duels..", Nickname[playerid]);
 	SendClientMessageToAll(WINNER_GREEN, string);
 
-	new a=0;
-	foreach(Player, i)
-	{
-	    if(Gaming[i]==false) continue;
-	    if(a==0) {
-			SetSpawnInfo(i, i, TEAM_A_SKIN, 1307.3180,2190.0989,11.0234,217.9566, 24, 99999, 25, 99999, 0, 0);
-			Team[i] = TEAM_A;
-			GamersIDs[TEAM_A] = i;
-			SetPlayerColor(i, COLOR_TEAM_A);
-			a=1;
-		}
-		else if(a==1) {
-			SetSpawnInfo(i, i, TEAM_B_SKIN, 1389.4598,2107.9426,11.0156,37.8928, 24, 99999, 25, 99999, 0, 0);
-			Team[i] = TEAM_B;
-			GamersIDs[TEAM_B] = i;
-			SetPlayerColor(i, COLOR_TEAM_B);
-		}
-		SetPlayerVirtualWorld(i, 2);
-		SetPlayerWorldBounds(i, 1406.25, 1300.78125, 2200.1953125, 2097.65625);
-		SpawnPlayer(i);
-		
-		new str[69];
-		format(str, sizeof str, "mapname %s vs %s (%d - %d)", Nickname[GamersIDs[TEAM_A]], Nickname[GamersIDs[TEAM_B]], Scores[TEAM_A], Scores[TEAM_B]);
-		SendRconCommand(str);
-	}
+	SetSpawnInfo(GamersIDs[TEAM_A], GamersIDs[TEAM_A], TEAM_A_SKIN, 1307.3180,2190.0989,11.0234,217.9566, 24, 99999, 25, 99999, 0, 0);
+    SetPlayerColor(GamersIDs[TEAM_A], COLOR_TEAM_A);
+
+	SetSpawnInfo(GamersIDs[TEAM_B], GamersIDs[TEAM_B], TEAM_B_SKIN, 1389.4598,2107.9426,11.0156,37.8928, 24, 99999, 25, 99999, 0, 0);
+    SetPlayerColor(GamersIDs[TEAM_B], COLOR_TEAM_B);
+    
+    SetPlayerVirtualWorld(GamersIDs[TEAM_A], 2);
+    SetPlayerVirtualWorld(GamersIDs[TEAM_B], 2);
+    
+    SetPlayerWorldBounds(GamersIDs[TEAM_A], 1406.25, 1300.78125, 2200.1953125, 2097.65625);
+    SetPlayerWorldBounds(GamersIDs[TEAM_B], 1406.25, 1300.78125, 2200.1953125, 2097.65625);
+    
+    SpawnPlayer(GamersIDs[TEAM_A]);
+    SpawnPlayer(GamersIDs[TEAM_B]);
+    
+	new str[69];
+	format(str, sizeof str, "mapname %s vs %s (%d - %d)", Nickname[GamersIDs[TEAM_A]], Nickname[GamersIDs[TEAM_B]], Scores[TEAM_A], Scores[TEAM_B]);
+	SendRconCommand(str);
+	
 	GameRunning=1;
 	return 1;
 }
