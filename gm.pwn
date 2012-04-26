@@ -41,7 +41,7 @@
 
 #define dcmd(%1,%2,%3) if ((strcmp((%3)[1], #%1, true, (%2)) == 0) && ((((%3)[(%2) + 1] == 0) && (dcmd_%1(playerid, "")))||(((%3)[(%2) + 1] == 32) && (dcmd_%1(playerid, (%3)[(%2) + 2]))))) return 1
 
-new bool:Gaming[MAX_PLAYERS];
+new Gaming[MAX_PLAYERS];
 new GamersIDs[3] = {INVALID_PLAYER_ID, INVALID_PLAYER_ID, INVALID_PLAYER_ID};
 new Nickname[MAX_PLAYERS][24];
 
@@ -51,7 +51,12 @@ new GameRunning;
 new DuelsPlayed = 0;
 new DuelsToPlay = 2;
 new Team[MAX_PLAYERS];
+new LastSync[MAX_PLAYERS];
 new Scores[3];
+new bool:SyncInCorso[MAX_PLAYERS];
+new Float:SyncHealth[MAX_PLAYERS];
+new Float:SyncArmour[MAX_PLAYERS];
+new PlayerSpaawn[MAX_PLAYERS];
 
 new ArenaZone;
 
@@ -61,7 +66,8 @@ new ArenaZone;
 
 #define LOBBY_COLOR    	 	  0x44C948AA
 #define COLOR_TEAM_A          0x4C8EB1AA
-#define COLOR_TEAM_B          0x67D320AA
+//#define COLOR_TEAM_B          0x67D320AA
+#define COLOR_TEAM_B          0x9CB028AA
 
 main()
 {
@@ -96,7 +102,9 @@ public OnPlayerRequestClass(playerid, classid) {
 
 public OnPlayerConnect(playerid) {
 	GetPlayerName(playerid, Nickname[playerid], sizeof Nickname);
-    Gaming[playerid] = false;
+    Gaming[playerid] = 0;
+    SyncInCorso[playerid] = false;
+    SetPVarInt(playerid, "spec", -1);
  	new string[128];
 	format(string, sizeof string, "\"%s\" è entrato nel server.", Nickname[playerid]);
 	SendClientMessageToAll(COLOR_JOIN, string);
@@ -107,8 +115,8 @@ public OnPlayerConnect(playerid) {
 	SendClientMessage(playerid, green, "/start - /pause e /unpause Starta, pausa e spausa");
 	SendClientMessage(playerid, green, "/setrounds Setta i rounds da giocare");
 	SendClientMessage(playerid, green, "/spec - /sspec Inizia/Ferma lo spec di un giocatore");
-	SendClientMessage(playerid, pink, "http://code.google.com/p/bestamazingpwner/source/browse/gm.pwn Modifica, Migliora, Rilascia. #opensource");
-	SendClientMessage(playerid, pink, "http://tinyurl.com/c9wrb8n Short link.");
+//	SendClientMessage(playerid, pink, "http://code.google.com/p/bestamazingpwner/source/browse/gm.pwn Modifica, Migliora, Rilascia. #opensource");
+//	SendClientMessage(playerid, pink, "http://tinyurl.com/c9wrb8n Short link.");
 	SendClientMessage(playerid, COLOR_DARKRED, "*****************************************************");
 
     SetPlayerColor(playerid, LOBBY_COLOR);
@@ -131,22 +139,42 @@ public OnPlayerDisconnect(playerid, reason) {
 	}
 	SendClientMessageToAll(COLOR_LEFT, string);
 	
-	if(Gaming[playerid] == true) {
+	if(Gaming[playerid] == 1) {
 	    pGaming--;
         GamersIDs[Team[playerid]] = INVALID_PLAYER_ID;
 	}
-    Gaming[playerid] = false;
+    Gaming[playerid] = 0;
 	return 1;
 }
 
 public OnPlayerSpawn(playerid) {
+	
 	SetPlayerHealth(playerid, 100);
 	SetPlayerArmour(playerid, 100);
 	GangZoneShowForPlayer(playerid, ArenaZone, 0x69BC61AA);
 	
-	if( Gaming[playerid] && DuelsPlayed != 0 && GameRunning) {
-		new t_o = TeamOpposto(Team[playerid]);
-		SpawnPlayer(GamersIDs[t_o]);
+	if(SyncInCorso[playerid] == false) {
+		if( Gaming[playerid] == 1 && DuelsPlayed != 0 && GameRunning && PlayerSpaawn[playerid] == 0) {
+			new t_o = TeamOpposto(Team[playerid]);
+			SpawnPlayer(GamersIDs[t_o]);
+			PlayerSpaawn[playerid] = 1;
+		}
+	}
+	else {
+	    if(Gaming[playerid] == 1) {
+		    if(Team[playerid] == TEAM_A) {
+				SetSpawnInfo(GamersIDs[TEAM_A], GamersIDs[TEAM_A], TEAM_A_SKIN, 1307.3180,2190.0989,11.0234,217.9566, 24, 99999, 25, 99999, 0, 0);
+			}
+			else {
+		    	SetSpawnInfo(GamersIDs[TEAM_B], GamersIDs[TEAM_B], TEAM_B_SKIN, 1389.4598,2107.9426,11.0156,37.8928, 24, 99999, 25, 99999, 0, 0);
+			}
+		}
+		else {
+		    SetSpawnInfo(playerid, 0, SPAWN_SKIN, 1401.5886,2204.4265,17.6719,140.1902,0,0,0,0,0,0);
+		}
+		SetPlayerHealth(playerid, SyncHealth[playerid]);
+		SetPlayerArmour(playerid, SyncArmour[playerid]);
+		SyncInCorso[playerid] = false;
 	}
 	
 	foreach(Player, i)	{
@@ -168,11 +196,13 @@ public OnPlayerDeath(playerid, killerid, reason) {
 			SendClientMessageToAll(-1, string);
 			return 1;
 		}
-	    if(Gaming[playerid] && Gaming[killerid]) {
+	    if(Gaming[playerid] == 1 && Gaming[killerid] == 1) {
 	        DuelsPlayed++;
 	        Scores[Team[killerid]]++;
 			format(string, sizeof string, "{2DC627}%s{FFFFFF} ha vinto questo duello contro {FF0000}%s {91B028}(%d/%d)", Nickname[killerid], Nickname[playerid], DuelsPlayed, DuelsToPlay);
 			SendClientMessageToAll(-1, string);
+			PlayerSpaawn[playerid]=0;
+			PlayerSpaawn[killerid]=0;
 			if(DuelsPlayed>=DuelsToPlay)
 			{
 			    SendClientMessageToAll(0x20BF3DAA, "Tutti i duels sono stati giocati.");
@@ -214,6 +244,21 @@ public OnPlayerRequestSpawn(playerid) {
 }
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys) {
+	if(newkeys == 160 && GetPVarInt(playerid, "spec") == -1 && (GetPlayerWeapon(playerid) == 0 || GetPlayerWeapon(playerid) == 1) && !IsPlayerInAnyVehicle(playerid)) {
+	    if((GetTickCount()-LastSync[playerid])*0.001<2) return SendClientMessage(playerid, red, "Error: You can't flood this command, wait 3 seconds if you want to sync again..");
+		new Float:x, Float:y, Float:z, Float:a;
+		GetPlayerPos(playerid, x, y, z);
+		GetPlayerFacingAngle(playerid, a);
+		GetPlayerHealth(playerid, SyncHealth[playerid]);
+		GetPlayerArmour(playerid, SyncArmour[playerid]);
+		SetSpawnInfo(playerid, playerid, GetPlayerSkin(playerid), x, y, z, a, (Gaming[playerid]+GameRunning)==2 ? 24 : 0, 99999, (Gaming[playerid]+GameRunning)==2 ? 25 : 0, 99999, 0, 0);
+		SpawnPlayer(playerid);
+		LastSync[playerid] = GetTickCount();
+		SyncInCorso[playerid] = true;
+		SendClientMessage(playerid, green, "Synced!");
+		return 1;
+	}
+
 	return 1;
 }
 
@@ -245,15 +290,15 @@ stock FinalScores() {
 	
 	if(Scores[1] > Scores[2])
 	{
-	    format(str, sizeof str,  "{8D99DC}Congratulazioni a {20BF3D}%s, {8D99DC}che vince con {C92F21}%d {8D99DC}duels vinti.\r\n", Nickname[GamersIDs[TEAM_A]], Scores[TEAM_A]);
+	    format(str, sizeof str,  "Congratulazioni a {20BF3D}%s, {FFFFFF}che vince con {C92F21}%d {FFFFFF}duels vinti.\r\n", Nickname[GamersIDs[TEAM_A]], Scores[TEAM_A]);
 	}
 	else if(Scores[1] < Scores[2])
 	{
-	    format(str, sizeof str,  "{8D99DC}Congratulazioni a {20BF3D}%s, {8D99DC}che vince con {C92F21}%d {8D99DC}duels vinti.\r\n", Nickname[GamersIDs[TEAM_B]], Scores[TEAM_B]);
+	    format(str, sizeof str,  "{FFFFFF}Congratulazioni a {20BF3D}%s, {FFFFFF}che vince con {C92F21}%d {FFFFFF}duels vinti.\r\n", Nickname[GamersIDs[TEAM_B]], Scores[TEAM_B]);
 	}
 	else
 	{
-	    format(str, sizeof str, "{8D99DC}Nessun giocatore vince! Pareggio {C92F21}%d {8D99DC}a {C92F21}%d\r\n", Scores[TEAM_A], Scores[TEAM_B]);
+	    format(str, sizeof str, "{FFFFFF}Nessun giocatore vince! Pareggio {C92F21}%d {8D99DC}a {FFFFFF}%d\r\n", Scores[TEAM_A], Scores[TEAM_B]);
 	}
 	
 	format(str, sizeof str, "%sDuels vinti\t\t\tNickname\r\n", str);
@@ -263,6 +308,10 @@ stock FinalScores() {
 
 	Scores[TEAM_A] = 0;
 	Scores[TEAM_B] = 0;
+
+	Gaming[GamersIDs[TEAM_A]] = 0;
+	Gaming[GamersIDs[TEAM_B]] = 0;
+
 	
 	Team[GamersIDs[TEAM_A]] = INVALID_PLAYER_ID;
 	Team[GamersIDs[TEAM_B]] = INVALID_PLAYER_ID;
@@ -273,8 +322,11 @@ stock FinalScores() {
 	GamersIDs[TEAM_A] = INVALID_PLAYER_ID;
 	GamersIDs[TEAM_B] = INVALID_PLAYER_ID;
 	
+
 	DuelsPlayed = 0;
 	GameRunning = 0;
+	
+	pGaming = 0;
 	
 	foreach(Player, i)
 	{
@@ -297,7 +349,7 @@ dcmd_add(playerid, params[])
     if(!strlen(params)) return SendClientMessage(playerid, red, "Usa /add [id]");
 	new id = strval(params);
 	if(!IsPlayerConnected(id)) return SendClientMessage(playerid, COLOR_RED, "Player non connesso.");
-	if(Gaming[id] == true) return SendClientMessage(playerid, COLOR_RED, "Il player già giocherà, usa /remove [id] per toglierlo.");
+	if(Gaming[id] == 1) return SendClientMessage(playerid, COLOR_RED, "Il player già giocherà, usa /remove [id] per toglierlo.");
 	if(pGaming>2) return SendClientMessage(playerid, COLOR_RED, "Ci sono più di due giocatori pronti per giocare..");
     new string[128];
 
@@ -314,7 +366,7 @@ dcmd_add(playerid, params[])
 	    return 1;
 	}
 
-    Gaming[id] = true;
+    Gaming[id] = 1;
     pGaming++;
     
 	format(string, sizeof string, "L'Admin \"%s\" ha aggiunto \"%s\" come giocatore.", Nickname[playerid], Nickname[id]);
@@ -328,13 +380,13 @@ dcmd_remove(playerid, params[])
 	if(!strlen(params)) return SendClientMessage(playerid, red, "Usa /remove [id]");
 	new id = strval(params);
 	if(!IsPlayerConnected(id)) return SendClientMessage(playerid, COLOR_RED, "Player non connesso.");
-	if(Gaming[playerid] == false) return SendClientMessage(playerid, COLOR_RED, "Il player non è in game, usa /add [id] per aggiungerlo.");
+	if(Gaming[playerid] == 0) return SendClientMessage(playerid, COLOR_RED, "Il player non è in game, usa /add [id] per aggiungerlo.");
 	new string[128];
 
     GamersIDs[Team[id]] = INVALID_PLAYER_ID;
     Team[id] = 0;
 
-    Gaming[id] = false;
+    Gaming[id] = 0;
     pGaming--;
     
 	format(string, sizeof string, "L'Admin \"%s\" ha rimosso \"%s\" come giocatore.", Nickname[playerid], Nickname[id]);
@@ -384,7 +436,7 @@ dcmd_pause(playerid, params[])
 	if(Paused) return SendClientMessage(playerid, COLOR_RED, "I Duels sono già in pausa..");
 	foreach(Player, i)
 	{
-	    if(Gaming[i] == false) continue;
+	    if(Gaming[i] == 0) continue;
 	    TogglePlayerControllable(i, false);
 	}
 	Paused = 1;
@@ -402,7 +454,7 @@ dcmd_unpause(playerid, params[])
 	if(!Paused) return SendClientMessage(playerid, COLOR_RED, "I Duels non pausati..");
 	foreach(Player, i)
 	{
-	    if(Gaming[i] == false) continue;
+	    if(Gaming[i] == 0) continue;
 	    TogglePlayerControllable(i, true);
 	}
 	Paused = 0;
@@ -427,13 +479,13 @@ dcmd_setrounds(playerid, params[])
 
 dcmd_spec(playerid, params[])
 {
-	if(Gaming[playerid]==true) return SendClientMessage(playerid, red, "Non puoi usare questo comando ora.");
+	if(Gaming[playerid]==1) return SendClientMessage(playerid, red, "Non puoi usare questo comando ora.");
 	if(!GameRunning)return SendClientMessage(playerid, red, "Il game non è startato..");
 	if(!strlen(params)) return SendClientMessage(playerid, red, "Usa /spec [id]");
 	new id = strval(params);
 	if(id == playerid) return SendClientMessage(playerid, red, "Non puoi osservare te stesso.");
 	if(!IsPlayerConnected(id)) return SendClientMessage(playerid, red, "Player non connesso.");
-	if(Gaming[id]==false) return SendClientMessage(playerid, red, "Player non in game.");
+	if(Gaming[id]==0) return SendClientMessage(playerid, red, "Player non in game.");
 	TogglePlayerSpectating(playerid, 1);
 	PlayerSpectatePlayer(playerid, id);
 	SetPlayerVirtualWorld(playerid, 2);
