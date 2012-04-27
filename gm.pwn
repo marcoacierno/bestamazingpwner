@@ -1,7 +1,7 @@
 #include <a_samp>
 #include <foreach>
 
-#define VERSION 		"1.1.0"
+#define VERSION 		"1.1.2"
 
 #define ADMIN_REQ       "Devi essere admin RCON per usare questo comando!"
 
@@ -58,10 +58,11 @@ new Float:SyncHealth[MAX_PLAYERS];
 new Float:SyncArmour[MAX_PLAYERS];
 new PlayerSpaawn[MAX_PLAYERS];
 
+new TimerChecking;
 new ArenaZone;
 
 #define SPAWN_SKIN      		289
-#define TEAM_A_SKIN     		34
+#define TEAM_A_SKIN     		230
 #define TEAM_B_SKIN     		58
 
 #define LOBBY_COLOR    	 	  0x44C948AA
@@ -199,10 +200,14 @@ public OnPlayerDeath(playerid, killerid, reason) {
 	    if(Gaming[playerid] == 1 && Gaming[killerid] == 1) {
 	        DuelsPlayed++;
 	        Scores[Team[killerid]]++;
-			format(string, sizeof string, "{2DC627}%s{FFFFFF} ha vinto questo duello contro {FF0000}%s {91B028}(%d/%d)", Nickname[killerid], Nickname[playerid], DuelsPlayed, DuelsToPlay);
+	        new Float:health, Float:armour;
+	        GetPlayerHealth(killerid,health);
+	        GetPlayerArmour(killerid,armour);
+			format(string, sizeof string, "{2DC627}%s{FFFFFF} ha vinto questo duello contro {FF0000}%s {FFFFFF} con {FF0000}%d{FFFFFF} HP. (%d-%d) (%d/%d)", Nickname[killerid], Nickname[playerid], floatround(health+armour), Scores[TEAM_A], Scores[TEAM_B],  DuelsPlayed, DuelsToPlay);
 			SendClientMessageToAll(-1, string);
 			PlayerSpaawn[playerid]=0;
 			PlayerSpaawn[killerid]=0;
+			SetPlayerScore(killerid, Scores[Team[killerid]]);
 			if(DuelsPlayed>=DuelsToPlay)
 			{
 			    SendClientMessageToAll(0x20BF3DAA, "Tutti i duels sono stati giocati.");
@@ -232,6 +237,7 @@ public OnPlayerCommandText(playerid, cmdtext[]) {
 	dcmd(spec, 4, cmdtext);
 	dcmd(sspec, 5, cmdtext);
 	dcmd(kill, 4, cmdtext);
+	dcmd(restoreall, 10, cmdtext);
 	return 0;
 }
 
@@ -245,7 +251,7 @@ public OnPlayerRequestSpawn(playerid) {
 
 public OnPlayerKeyStateChange(playerid, newkeys, oldkeys) {
 	if(newkeys == 160 && GetPVarInt(playerid, "spec") == -1 && (GetPlayerWeapon(playerid) == 0 || GetPlayerWeapon(playerid) == 1) && !IsPlayerInAnyVehicle(playerid)) {
-	    if((GetTickCount()-LastSync[playerid])*0.001<2) return SendClientMessage(playerid, red, "Error: You can't flood this command, wait 3 seconds if you want to sync again..");
+	    if((GetTickCount()-LastSync[playerid])*0.001<2) return SendClientMessage(playerid, red, "Errore: Puoi usare il sync ogni 3 secondi..");
 		new Float:x, Float:y, Float:z, Float:a;
 		GetPlayerPos(playerid, x, y, z);
 		GetPlayerFacingAngle(playerid, a);
@@ -290,15 +296,15 @@ stock FinalScores() {
 	
 	if(Scores[1] > Scores[2])
 	{
-	    format(str, sizeof str,  "Congratulazioni a {20BF3D}%s, {FFFFFF}che vince con {C92F21}%d {FFFFFF}duels vinti.\r\n", Nickname[GamersIDs[TEAM_A]], Scores[TEAM_A]);
+	    format(str, sizeof str,  "Congratulazioni a {20BF3D}%s, {FFFFFF}che vince con {C92F21}%d {FFFFFF}duels.\r\n", Nickname[GamersIDs[TEAM_A]], Scores[TEAM_A]);
 	}
 	else if(Scores[1] < Scores[2])
 	{
-	    format(str, sizeof str,  "{FFFFFF}Congratulazioni a {20BF3D}%s, {FFFFFF}che vince con {C92F21}%d {FFFFFF}duels vinti.\r\n", Nickname[GamersIDs[TEAM_B]], Scores[TEAM_B]);
+	    format(str, sizeof str,  "Congratulazioni a {20BF3D}%s, {FFFFFF}che vince con {C92F21}%d {FFFFFF}duels.\r\n", Nickname[GamersIDs[TEAM_B]], Scores[TEAM_B]);
 	}
 	else
 	{
-	    format(str, sizeof str, "{FFFFFF}Nessun giocatore vince! Pareggio {C92F21}%d {8D99DC}a {FFFFFF}%d\r\n", Scores[TEAM_A], Scores[TEAM_B]);
+	    format(str, sizeof str, "Nessun giocatore vince! Pareggio %d a %d\r\n", Scores[TEAM_A], Scores[TEAM_B]);
 	}
 	
 	format(str, sizeof str, "%sDuels vinti\t\t\tNickname\r\n", str);
@@ -312,7 +318,6 @@ stock FinalScores() {
 	Gaming[GamersIDs[TEAM_A]] = 0;
 	Gaming[GamersIDs[TEAM_B]] = 0;
 
-	
 	Team[GamersIDs[TEAM_A]] = INVALID_PLAYER_ID;
 	Team[GamersIDs[TEAM_B]] = INVALID_PLAYER_ID;
 
@@ -321,7 +326,6 @@ stock FinalScores() {
 	
 	GamersIDs[TEAM_A] = INVALID_PLAYER_ID;
 	GamersIDs[TEAM_B] = INVALID_PLAYER_ID;
-	
 
 	DuelsPlayed = 0;
 	GameRunning = 0;
@@ -330,15 +334,22 @@ stock FinalScores() {
 	
 	foreach(Player, i)
 	{
-	    ShowPlayerDialog(i, DIALOG_FINAL, DIALOG_STYLE_LIST, "Duels Final", str, "Chiudi", "");
-	    SpawnPlayer(i);
+	    ShowPlayerDialog(i, DIALOG_FINAL, DIALOG_STYLE_LIST, "Final Duels", str, "Chiudi", "");
 	    SetPlayerWorldBounds(i, 20000.0000, -20000.0000, 20000.0000, -20000.0000);
 	    SetPlayerVirtualWorld(i, 0);
+		SetPlayerColor(i, LOBBY_COLOR);
+		SetPlayerScore(i, 0);
+		if(GetPVarInt(i, "spec") != -1) {
+		    SetPVarInt(i, "spec", -1);
+		    TogglePlayerSpectating(i, 0);
+		}
+		else SpawnPlayer(i);
 	}
 	
 	for(new x = 0; x < 10; x++) SendDeathMessage(-1,-1,-1);
 
     SendRconCommand("mapname Lobby");
+    KillTimer(TimerChecking);
 	return 1;
 }
 
@@ -395,6 +406,25 @@ dcmd_remove(playerid, params[])
 	return 1;
 }
 
+dcmd_restoreall(playerid, params[])
+{
+	#pragma unused params
+    if(!IsPlayerAdmin(playerid)) return SendClientMessage(playerid, red, ADMIN_REQ);
+	if(!GameRunning) return SendClientMessage(playerid, red, "Non puoi usare questo comando se il gioco non è in corso.");
+
+	SetPlayerHealth(GamersIDs[TEAM_A], 100);
+	SetPlayerHealth(GamersIDs[TEAM_B], 100);
+
+	SetPlayerArmour(GamersIDs[TEAM_A], 100);
+	SetPlayerArmour(GamersIDs[TEAM_B], 100);
+	new string[128];
+	
+	format(string, sizeof string, "L'Admin \"%s\" ha ripristinato la vita di tutti i giocatori.", Nickname[playerid]);
+	SendClientMessageToAll(WINNER_GREEN, string);
+	return 1;
+}
+
+
 dcmd_start(playerid, params[])
 {
 	#pragma unused params
@@ -411,8 +441,8 @@ dcmd_start(playerid, params[])
 	SetSpawnInfo(GamersIDs[TEAM_B], GamersIDs[TEAM_B], TEAM_B_SKIN, 1389.4598,2107.9426,11.0156,37.8928, 24, 99999, 25, 99999, 0, 0);
     SetPlayerColor(GamersIDs[TEAM_B], COLOR_TEAM_B);
     
-    SetPlayerVirtualWorld(GamersIDs[TEAM_A], 2);
-    SetPlayerVirtualWorld(GamersIDs[TEAM_B], 2);
+//    SetPlayerVirtualWorld(GamersIDs[TEAM_A], 2);
+//    SetPlayerVirtualWorld(GamersIDs[TEAM_B], 2);
     
     SetPlayerWorldBounds(GamersIDs[TEAM_A], 1406.25, 1300.78125, 2200.1953125, 2097.65625);
     SetPlayerWorldBounds(GamersIDs[TEAM_B], 1406.25, 1300.78125, 2200.1953125, 2097.65625);
@@ -425,6 +455,8 @@ dcmd_start(playerid, params[])
 	SendRconCommand(str);
 	
 	GameRunning=1;
+	
+	TimerChecking = SetTimer("NormalPlayerInArena", 100, 1);
 	return 1;
 }
 
@@ -472,7 +504,7 @@ dcmd_setrounds(playerid, params[])
 //	if(rounds < (Scores[TEAM_A]+Scores[TEAM_B])) return SendClientMessage(playerid, red, "Il numero di rounds inserito non è valido..");
 	DuelsToPlay = rounds;
  	new string[128];
-	format(string, sizeof string, "L'Admin \"%s\" ha settato i rounds da giocare a %d.", Nickname[playerid], DuelsToPlay);
+	format(string, sizeof string, "L'Admin \"%s\" ha settato i duels da giocare a %d.", Nickname[playerid], DuelsToPlay);
 	SendClientMessageToAll(green, string);
 	return 1;
 }
@@ -488,7 +520,7 @@ dcmd_spec(playerid, params[])
 	if(Gaming[id]==0) return SendClientMessage(playerid, red, "Player non in game.");
 	TogglePlayerSpectating(playerid, 1);
 	PlayerSpectatePlayer(playerid, id);
-	SetPlayerVirtualWorld(playerid, 2);
+	SetPlayerVirtualWorld(playerid, 0);
 	SendClientMessage(playerid, green, "Spec iniziato.");
     SetPVarInt(playerid, "spec", id);
 	return 1;
@@ -513,13 +545,33 @@ dcmd_kill(playerid, params[])
 	return 1;
 }
 
-/*IsPlayerInArea(playerid, Float:minx, Float:maxx, Float:miny, Float:maxy)
+IsPlayerInArea(playerid, Float:minx, Float:maxx, Float:miny, Float:maxy)
 {
     new Float:x, Float:y, Float:z;
     GetPlayerPos(playerid, x, y, z);
     if (x > minx && x < maxx && y > miny && y < maxy) return 1;
     return 0;
-}*/
+}
 
+forward NormalPlayerInArena();
+public NormalPlayerInArena()
+{
+	foreach(Player, i)
+	{
+	    if(i==GamersIDs[TEAM_A]||i==GamersIDs[TEAM_B]) continue;
+//	    if(!IsPlayerInArea(i, 1300.78125, 1406.25, 2097.65625, 2200.1953125)) {
+	    if(!IsPlayerInArea(i, 1303.0457, 1393.3049, 2106.2852, 2197.3660)) {
+	        if(GetPlayerVirtualWorld(i) != 0)
+	            SetPlayerVirtualWorld(i, 0);
+
+	    }
+	    else {
+	        SetPlayerVirtualWorld(i, 100);
+	    }
+	}
+}
+
+//AddPlayerClass(289,1393.3049,2106.2852,11.0156,226.6710,0,0,0,0,0,0); // a
+//AddPlayerClass(289,1303.0457,2197.3660,11.0234,44.5181,0,0,0,0,0,0); // b
 
 
