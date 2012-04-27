@@ -115,7 +115,7 @@ public OnPlayerConnect(playerid) {
 	SendClientMessage(playerid, green, "/add - /remove Aggiunge/rimuove un giocatore");
 	SendClientMessage(playerid, green, "/start - /pause e /unpause Starta, pausa e spausa");
 	SendClientMessage(playerid, green, "/setrounds Setta i rounds da giocare");
-	SendClientMessage(playerid, green, "/spec - /sspec Inizia/Ferma lo spec di un giocatore");
+	SendClientMessage(playerid, green, "/spec - (/sspec,/unspec) Inizia/Ferma lo spec di un giocatore");
 //	SendClientMessage(playerid, pink, "http://code.google.com/p/bestamazingpwner/source/browse/gm.pwn Modifica, Migliora, Rilascia. #opensource");
 //	SendClientMessage(playerid, pink, "http://tinyurl.com/c9wrb8n Short link.");
 	SendClientMessage(playerid, COLOR_DARKRED, "*****************************************************");
@@ -236,6 +236,7 @@ public OnPlayerCommandText(playerid, cmdtext[]) {
 	dcmd(setrounds, 9, cmdtext);
 	dcmd(spec, 4, cmdtext);
 	dcmd(sspec, 5, cmdtext);
+	dcmd(unspec, 6, cmdtext);
 	dcmd(kill, 4, cmdtext);
 	dcmd(restoreall, 10, cmdtext);
 	return 0;
@@ -535,6 +536,11 @@ dcmd_sspec(playerid, params[])
 	SendClientMessage(playerid, green, "Spec finito.");
 	SetPVarInt(playerid, "spec", -1);
 	return 1;
+}
+
+dcmd_unspec(playerid, params[])
+{
+	return dcmd_spec(playerid, params);
 }
 
 dcmd_kill(playerid, params[])
