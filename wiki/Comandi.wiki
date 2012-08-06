@@ -14,4 +14,4 @@ Comandi della gamemode: <br />
 <br />
 *Per tutti* <br />
 /spec - Osserva un giocatore in game <br />
-/sspec - Ferma l'osservazioned in player in game <br />
+/sspec - Ferma l'osservazione di un player in game <br />
