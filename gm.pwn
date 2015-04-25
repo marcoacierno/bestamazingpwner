@@ -107,7 +107,7 @@ public OnPlayerConnect(playerid) {
     SyncInCorso[playerid] = false;
     SetPVarInt(playerid, "spec", -1);
  	new string[128];
-	format(string, sizeof string, "\"%s\" Ë entrato nel server.", Nickname[playerid]);
+	format(string, sizeof string, "\"%s\" √® entrato nel server.", Nickname[playerid]);
 	SendClientMessageToAll(COLOR_JOIN, string);
 	
 	SendClientMessage(playerid, COLOR_DARKRED, "*****************************************************");
@@ -116,8 +116,6 @@ public OnPlayerConnect(playerid) {
 	SendClientMessage(playerid, green, "/start - /pause e /unpause Starta, pausa e spausa");
 	SendClientMessage(playerid, green, "/setrounds Setta i rounds da giocare");
 	SendClientMessage(playerid, green, "/spec - (/sspec,/unspec) Inizia/Ferma lo spec di un giocatore");
-//	SendClientMessage(playerid, pink, "http://code.google.com/p/bestamazingpwner/source/browse/gm.pwn Modifica, Migliora, Rilascia. #opensource");
-//	SendClientMessage(playerid, pink, "http://tinyurl.com/c9wrb8n Short link.");
 	SendClientMessage(playerid, COLOR_DARKRED, "*****************************************************");
 
     SetPlayerColor(playerid, LOBBY_COLOR);
@@ -129,13 +127,13 @@ public OnPlayerDisconnect(playerid, reason) {
     switch(reason)
     {
     	case 0: {
-			format(string, sizeof string, "\"%s\" Ë crashato dal server.", Nickname[playerid]);
+			format(string, sizeof string, "\"%s\" √® crashato dal server.", Nickname[playerid]);
 		}
     	case 1: {
-			format(string, sizeof string, "\"%s\" Ë uscito dal server.", Nickname[playerid]);
+			format(string, sizeof string, "\"%s\" √® uscito dal server.", Nickname[playerid]);
 		}
     	case 2: {
-			format(string, sizeof string, "\"%s\" Ë stato kickato/bannato dal server.", Nickname[playerid]);
+			format(string, sizeof string, "\"%s\" √® stato kickato/bannato dal server.", Nickname[playerid]);
 		}
 	}
 	SendClientMessageToAll(COLOR_LEFT, string);
@@ -193,7 +191,7 @@ public OnPlayerDeath(playerid, killerid, reason) {
 	    SendDeathMessage(killerid, playerid, reason);
 	    new string[128];
 	    if(!IsPlayerConnected(killerid)) {
-			format(string, sizeof string, "{FF0000} %s Ë morto.", Nickname[playerid]);
+			format(string, sizeof string, "{FF0000} %s √® morto.", Nickname[playerid]);
 			SendClientMessageToAll(-1, string);
 			return 1;
 		}
@@ -361,8 +359,8 @@ dcmd_add(playerid, params[])
     if(!strlen(params)) return SendClientMessage(playerid, red, "Usa /add [id]");
 	new id = strval(params);
 	if(!IsPlayerConnected(id)) return SendClientMessage(playerid, COLOR_RED, "Player non connesso.");
-	if(Gaming[id] == 1) return SendClientMessage(playerid, COLOR_RED, "Il player gi‡ giocher‡, usa /remove [id] per toglierlo.");
-	if(pGaming>2) return SendClientMessage(playerid, COLOR_RED, "Ci sono pi˘ di due giocatori pronti per giocare..");
+	if(Gaming[id] == 1) return SendClientMessage(playerid, COLOR_RED, "Il player gi√† giocher√†, usa /remove [id] per toglierlo.");
+	if(pGaming>2) return SendClientMessage(playerid, COLOR_RED, "Ci sono pi√π di due giocatori pronti per giocare..");
     new string[128];
 
 	if(GamersIDs[TEAM_A] == INVALID_PLAYER_ID) {
@@ -392,7 +390,7 @@ dcmd_remove(playerid, params[])
 	if(!strlen(params)) return SendClientMessage(playerid, red, "Usa /remove [id]");
 	new id = strval(params);
 	if(!IsPlayerConnected(id)) return SendClientMessage(playerid, COLOR_RED, "Player non connesso.");
-	if(Gaming[playerid] == 0) return SendClientMessage(playerid, COLOR_RED, "Il player non Ë in game, usa /add [id] per aggiungerlo.");
+	if(Gaming[playerid] == 0) return SendClientMessage(playerid, COLOR_RED, "Il player non √® in game, usa /add [id] per aggiungerlo.");
 	new string[128];
 
     GamersIDs[Team[id]] = INVALID_PLAYER_ID;
@@ -411,7 +409,7 @@ dcmd_restoreall(playerid, params[])
 {
 	#pragma unused params
     if(!IsPlayerAdmin(playerid)) return SendClientMessage(playerid, red, ADMIN_REQ);
-	if(!GameRunning) return SendClientMessage(playerid, red, "Non puoi usare questo comando se il gioco non Ë in corso.");
+	if(!GameRunning) return SendClientMessage(playerid, red, "Non puoi usare questo comando se il gioco non √® in corso.");
 
 	SetPlayerHealth(GamersIDs[TEAM_A], 100);
 	SetPlayerHealth(GamersIDs[TEAM_B], 100);
@@ -430,8 +428,8 @@ dcmd_start(playerid, params[])
 {
 	#pragma unused params
 	if(!IsPlayerAdmin(playerid)) return SendClientMessage(playerid, red, ADMIN_REQ);
-	if(GameRunning) return SendClientMessage(playerid, COLOR_RED, "I Duels sono gi‡ stati startati..");
-	if(pGaming < 2 || pGaming > 2) return SendClientMessage(playerid, red, "Il numero di giocatori settati non Ë valido.");
+	if(GameRunning) return SendClientMessage(playerid, COLOR_RED, "I Duels sono gi√† stati startati..");
+	if(pGaming < 2 || pGaming > 2) return SendClientMessage(playerid, red, "Il numero di giocatori settati non √® valido.");
  	new string[128];
 	format(string, sizeof string, "L'Admin \"%s\" ha startato i duels..", Nickname[playerid]);
 	SendClientMessageToAll(WINNER_GREEN, string);
@@ -466,7 +464,7 @@ dcmd_pause(playerid, params[])
     #pragma unused params
     if(!IsPlayerAdmin(playerid)) return SendClientMessage(playerid, red, ADMIN_REQ);
 	if(!GameRunning) return SendClientMessage(playerid, COLOR_RED, "I Duels non sono stati startati..");
-	if(Paused) return SendClientMessage(playerid, COLOR_RED, "I Duels sono gi‡ in pausa..");
+	if(Paused) return SendClientMessage(playerid, COLOR_RED, "I Duels sono gi√† in pausa..");
 	foreach(Player, i)
 	{
 	    if(Gaming[i] == 0) continue;
@@ -502,7 +500,7 @@ dcmd_setrounds(playerid, params[])
 	if(!IsPlayerAdmin(playerid)) return SendClientMessage(playerid, red, ADMIN_REQ);
 	if(!strlen(params)) return SendClientMessage(playerid, red, "Usa /setrounds [rounds]");
 	new rounds = strval(params);
-//	if(rounds < (Scores[TEAM_A]+Scores[TEAM_B])) return SendClientMessage(playerid, red, "Il numero di rounds inserito non Ë valido..");
+//	if(rounds < (Scores[TEAM_A]+Scores[TEAM_B])) return SendClientMessage(playerid, red, "Il numero di rounds inserito non √® valido..");
 	DuelsToPlay = rounds;
  	new string[128];
 	format(string, sizeof string, "L'Admin \"%s\" ha settato i duels da giocare a %d.", Nickname[playerid], DuelsToPlay);
@@ -513,7 +511,7 @@ dcmd_setrounds(playerid, params[])
 dcmd_spec(playerid, params[])
 {
 	if(Gaming[playerid]==1) return SendClientMessage(playerid, red, "Non puoi usare questo comando ora.");
-	if(!GameRunning)return SendClientMessage(playerid, red, "Il game non Ë startato..");
+	if(!GameRunning)return SendClientMessage(playerid, red, "Il game non √® startato..");
 	if(!strlen(params)) return SendClientMessage(playerid, red, "Usa /spec [id]");
 	new id = strval(params);
 	if(id == playerid) return SendClientMessage(playerid, red, "Non puoi osservare te stesso.");
