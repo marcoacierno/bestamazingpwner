@@ -511,12 +511,12 @@ dcmd_setrounds(playerid, params[])
 dcmd_spec(playerid, params[])
 {
 	if(Gaming[playerid]==1) return SendClientMessage(playerid, red, "Non puoi usare questo comando ora.");
-	if(!GameRunning)return SendClientMessage(playerid, red, "Il game non è startato..");
+	if(!GameRunning)return SendClientMessage(playerid, red, "Il gioco non è startato..");
 	if(!strlen(params)) return SendClientMessage(playerid, red, "Usa /spec [id]");
 	new id = strval(params);
 	if(id == playerid) return SendClientMessage(playerid, red, "Non puoi osservare te stesso.");
 	if(!IsPlayerConnected(id)) return SendClientMessage(playerid, red, "Player non connesso.");
-	if(Gaming[id]==0) return SendClientMessage(playerid, red, "Player non in game.");
+	if(Gaming[id]==0) return SendClientMessage(playerid, red, "Player non in gioco.");
 	TogglePlayerSpectating(playerid, 1);
 	PlayerSpectatePlayer(playerid, id);
 	SetPlayerVirtualWorld(playerid, 0);
